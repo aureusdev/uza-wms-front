@@ -7,6 +7,10 @@ import { toast } from 'sonner'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ThemeImage } from '@/components/theme/ThemeImage'
 
+// Importar assets de logos
+import uzaLogoDark from '@/assets/uza-ntwk-logo-dark.webp'
+import uzaLogoLight from '@/assets/uza-ntwk-logo-light.webp'
+
 // Definir la interfaz para los search params de esta ruta
 interface LoginSearchParams {
    redirectTo?: string
@@ -54,8 +58,8 @@ function LoginPage() {
             <CardHeader className='space-y-1'>
                <div className='flex justify-center mb-4'>
                   <ThemeImage
-                     lightSrc='/uza-ntwk-logo-dark.webp'
-                     darkSrc='/uza-ntwk-logo-light.webp'
+                     lightSrc={uzaLogoDark}
+                     darkSrc={uzaLogoLight}
                      alt='UZA Network Logo'
                      width={250}
                      height={300}

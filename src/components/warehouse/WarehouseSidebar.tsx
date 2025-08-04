@@ -35,6 +35,9 @@ import WarehouseNavUser from "./WarehouseNavUser";
 
 import type { User } from "@auth/types/auth.types";
 
+// Importar assets de logos
+import uzaLogoDark from '@/assets/uza-ntwk-logo-dark.webp'
+import uzaLogoLight from '@/assets/uza-ntwk-logo-light.webp'
 
 
 export function WarehouseSidebar({
@@ -64,8 +67,8 @@ export function WarehouseSidebar({
          <SidebarHeader>
             <div className="flex items-center justify-center w-full">
                <ThemeImage
-                  lightSrc="/uza-ntwk-logo-dark.webp"
-                  darkSrc="/uza-ntwk-logo-light.webp"
+                  lightSrc={uzaLogoDark}
+                  darkSrc={uzaLogoLight}
                   alt="UZA Network Logo"
                   width={150}
                   height={150}
