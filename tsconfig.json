@@ -1,0 +1,38 @@
+{
+   "files": [],
+   "references": [
+      {
+         "path": "./tsconfig.app.json"
+      },
+      {
+         "path": "./tsconfig.node.json"
+      }
+   ],
+   /* Path Aliases Tailwind & Shadcn */
+   "compilerOptions": {
+      "baseUrl": ".",
+      "paths": {
+         "@/*": [
+            "./src/*"
+         ],
+         "@auth/*": [
+            "./src/modules/shared/auth/*"
+         ],
+         "@items/*": [
+            "./src/modules/warehouse/items/*"
+         ],
+         "@assignments/*": [
+            "./src/modules/warehouse/assignments/*"
+         ],
+         "@categories/*": [
+            "./src/modules/shared/categories/*"
+         ],
+         "@warehouses/*": [
+            "./src/modules/warehouse/warehouses/*"
+         ],
+         "@containers/*": [
+            "./src/modules/warehouse/containers/*"
+         ]
+      }
+   }
+}

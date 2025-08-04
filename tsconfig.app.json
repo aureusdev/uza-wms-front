@@ -1,0 +1,55 @@
+{
+   "compilerOptions": {
+      // "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+      "target": "ES2022",
+      "useDefineForClassFields": true,
+      "lib": [
+         "ES2022",
+         "DOM",
+         "DOM.Iterable"
+      ],
+      "module": "ESNext",
+      "skipLibCheck": true,
+      /* Bundler mode */
+      "moduleResolution": "bundler",
+      "allowImportingTsExtensions": true,
+      "verbatimModuleSyntax": true,
+      "moduleDetection": "force",
+      "noEmit": true,
+      "jsx": "react-jsx",
+      /* Linting */
+      "strict": true,
+      "noUnusedLocals": true,
+      "noUnusedParameters": true,
+      "noFallthroughCasesInSwitch": true,
+      "noUncheckedSideEffectImports": true,
+      /* Path Aliases Tailwind & Shadcn */
+      "baseUrl": ".",
+      "paths": {
+         "@/*": [
+            "./src/*"
+         ],
+         "@auth/*": [
+            "./src/modules/shared/auth/*"
+         ],
+         "@items/*": [
+            "./src/modules/warehouse/items/*"
+         ],
+         "@assignments/*": [
+            "./src/modules/warehouse/assignments/*"
+         ],
+         "@categories/*": [
+            "./src/modules/shared/categories/*"
+         ],
+         "@warehouses/*": [
+            "./src/modules/warehouse/warehouses/*"
+         ],
+         "@containers/*": [
+            "./src/modules/warehouse/containers/*"
+         ]
+      }
+   },
+   "include": [
+      "src"
+   ]
+}
