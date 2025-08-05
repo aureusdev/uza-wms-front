@@ -52,97 +52,17 @@ export const apolloClient = new ApolloClient({
       typePolicies: {
          Query: {
             fields: {
-               // Configurar políticas de cache optimizadas
-               warehouses: {
-                  // Cache por 5 minutos para warehouses
-                  merge(existing, incoming, { args }) {
-                     // Si es la misma consulta, reemplazar completamente
-                     if (existing && args?.filters) {
-                        const existingFilters = existing.__args?.filters;
-                        const incomingFilters = args.filters;
-                        
-                        if (JSON.stringify(existingFilters) === JSON.stringify(incomingFilters)) {
-                           return incoming;
-                        }
-                     }
-                     
-                     return incoming;
-                  },
-                  read(existing, { args }) {
-                     // Leer desde cache si los datos son recientes (< 5 minutos)
-                     if (existing && existing.__timestamp) {
-                        const age = Date.now() - existing.__timestamp;
-                        if (age < 5 * 60 * 1000) { // 5 minutos
-                           return existing;
-                        }
-                     }
-                     return existing;
-                  }
-               },
-               items: {
-                  // Cache similar para items
-                  merge(existing, incoming, { args }) {
-                     if (existing && args?.filters) {
-                        const existingFilters = existing.__args?.filters;
-                        const incomingFilters = args.filters;
-                        
-                        if (JSON.stringify(existingFilters) === JSON.stringify(incomingFilters)) {
-                           return incoming;
-                        }
-                     }
-                     
-                     return incoming;
-                  }
-               },
-               containers: {
-                  // Cache similar para containers
-                  merge(existing, incoming, { args }) {
-                     if (existing && args?.filters) {
-                        const existingFilters = existing.__args?.filters;
-                        const incomingFilters = args.filters;
-                        
-                        if (JSON.stringify(existingFilters) === JSON.stringify(incomingFilters)) {
-                           return incoming;
-                        }
-                     }
-                     
-                     return incoming;
-                  }
-               }
+               // Configurar políticas de cache si es necesario
             },
          },
-         Warehouse: {
-            fields: {
-               // Configurar merge para campos específicos si es necesario
-            }
-         },
-         Item: {
-            fields: {
-               // Configurar merge para campos específicos si es necesario  
-            }
-         },
-         Container: {
-            fields: {
-               // Configurar merge para campos específicos si es necesario
-            }
-         }
       },
    }),
    defaultOptions: {
       watchQuery: {
          errorPolicy: 'all',
-         // Cache-first por defecto para mejor rendimiento
-         fetchPolicy: 'cache-first',
-         // Tiempo de cache más largo para datos que cambian poco
-         pollInterval: 0, // Sin polling automático por defecto
       },
       query: {
          errorPolicy: 'all',
-         fetchPolicy: 'cache-first',
       },
-      mutate: {
-         errorPolicy: 'all',
-         // Optimistic response habilitado para mejor UX
-      }
    },
 });

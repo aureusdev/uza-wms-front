@@ -11,7 +11,7 @@ import { useWarehouses } from '../hooks/useWarehouses'
 import { useWarehouseMutations } from '../hooks/useWarehouseMutations'
 import WarehouseCard from '../components/WarehouseCard'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { AlertCircle, Loader2, Wifi, WifiOff } from 'lucide-react'
+import { AlertCircle, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 function WarehousePage() {
@@ -25,20 +25,7 @@ function WarehousePage() {
 
    // Usar filtros debouncados para evitar consultas por cada letra
    const backendFilters = getBackendFilters()
-   const { 
-      warehouses, 
-      loading, 
-      error, 
-      refetch,
-      lastFetch,
-      isCacheHit,
-      isRefetching
-   } = useWarehouses({ 
-      filters: backendFilters,
-      enableCaching: true,
-      pollingInterval: 0, // Sin polling automático para mejor rendimiento
-   })
-   
+   const { warehouses, loading, error, refetch } = useWarehouses({ filters: backendFilters })
    const { createWarehouse, createWarehouseResult } = useWarehouseMutations({
       onSuccess: (action) => {
          if (action === 'create') {
@@ -59,18 +46,6 @@ function WarehousePage() {
    const handleCreateWarehouse = async (data: any) => {
       await createWarehouse(data)
    }
-
-   // Función para refetch manual con feedback
-   const handleManualRefresh = useCallback(() => {
-      toast.promise(
-         refetch(),
-         {
-            loading: 'Actualizando almacenes...',
-            success: 'Almacenes actualizados',
-            error: 'Error al actualizar almacenes'
-         }
-      );
-   }, [refetch]);
 
    // Mostrar toast si hay error de red
    useEffect(() => {
@@ -114,52 +89,13 @@ function WarehousePage() {
                )}
                <span className='hidden sm:inline'>Agregar Almacén</span>
             </Button>
-            
-            {/* Botón de refresh manual */}
-            <Button
-               variant="outline"
-               size="sm"
-               onClick={handleManualRefresh}
-               disabled={loading || isRefetching}
-               className="flex-shrink-0"
-            >
-               {isRefetching ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-               ) : isCacheHit ? (
-                  <Wifi className="h-4 w-4 text-green-600" />
-               ) : (
-                  <WifiOff className="h-4 w-4" />
-               )}
-               <span className="hidden lg:inline">
-                  {isCacheHit ? 'Cache' : 'Actualizar'}
-               </span>
-            </Button>
          </Header>
 
          <div className='p-6 h-full'>
-            {/* Indicador de estado de cache */}
-            {lastFetch && (
-               <div className="mb-4 text-xs text-muted-foreground flex items-center gap-2">
-                  {isCacheHit ? (
-                     <>
-                        <Wifi className="h-3 w-3 text-green-600" />
-                        Datos desde cache
-                     </>
-                  ) : (
-                     <>
-                        <WifiOff className="h-3 w-3" />
-                        Última actualización: {lastFetch.toLocaleTimeString()}
-                     </>
-                  )}
-               </div>
-            )}
-            
             {loading ? (
                <div className='flex justify-center items-center h-64'>
                   <Loader2 className='h-8 w-8 animate-spin' />
-                  <span className='ml-2'>
-                     {isCacheHit ? 'Cargando desde cache...' : 'Cargando almacenes...'}
-                  </span>
+                  <span className='ml-2'>Cargando almacenes...</span>
                </div>
             ) : error ? (
                <Alert variant='destructive'>
@@ -168,11 +104,6 @@ function WarehousePage() {
                   <AlertDescription>
                      Hubo un error al cargar los almacenes. Por favor, intenta nuevamente.
                   </AlertDescription>
-                  <div className='mt-4'>
-                     <Button variant='outline' onClick={handleManualRefresh}>
-                        Reintentar
-                     </Button>
-                  </div>
                   <div className='mt-4'>
                      <Button variant='outline' onClick={() => refetch()}>
                         Reintentar
