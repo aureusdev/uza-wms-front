@@ -8,8 +8,8 @@ import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/ca
 import { ThemeImage } from '@/components/theme/ThemeImage'
 
 // Importar assets de logos
-import uzaLogoDark from '@/assets/uza-ntwk-logo-dark.webp'
-import uzaLogoLight from '@/assets/uza-ntwk-logo-light.webp'
+import uzaLogoDark from '@/assets/uza-ntwk-logo-dark.svg'
+import uzaLogoLight from '@/assets/uza-ntwk-logo-light.svg'
 
 // Definir la interfaz para los search params de esta ruta
 interface LoginSearchParams {

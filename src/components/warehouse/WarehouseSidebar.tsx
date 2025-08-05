@@ -36,8 +36,8 @@ import WarehouseNavUser from "./WarehouseNavUser";
 import type { User } from "@auth/types/auth.types";
 
 // Importar assets de logos
-import uzaLogoDark from '@/assets/uza-ntwk-logo-dark.webp'
-import uzaLogoLight from '@/assets/uza-ntwk-logo-light.webp'
+import uzaLogoDark from '@/assets/uza-ntwk-logo-dark.svg'
+import uzaLogoLight from '@/assets/uza-ntwk-logo-light.svg'
 
 
 export function WarehouseSidebar({
