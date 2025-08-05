@@ -1,5 +1,5 @@
 import { useMutation, ApolloError } from '@apollo/client'
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import {
    CREATE_WAREHOUSE,
    UPDATE_WAREHOUSE,
@@ -23,6 +23,71 @@ import type {
    HardDeleteWarehouseData,
    HardDeleteWarehouseVars,
 } from '../types/warehouse.types'
+
+// ===============================
+// OPTIMIZACIÓN DE CACHE
+// ===============================
+
+const getCacheUpdateStrategy = (action: string) => {
+   switch (action) {
+      case 'create':
+      case 'restore':
+         return {
+            refetchQueries: [{ query: GET_WAREHOUSES }],
+            awaitRefetchQueries: false, // No esperar para mejor UX
+         };
+      case 'update':
+         return {
+            // Para updates, solo actualizar cache local sin refetch completo
+            update: (cache: any, { data }: any) => {
+               if (data?.updateWarehouse) {
+                  cache.modify({
+                     fields: {
+                        warehouses(existing: any) {
+                           const updatedWarehouse = data.updateWarehouse;
+                           const newItems = existing.items.map((item: any) =>
+                              item.id === updatedWarehouse.id ? updatedWarehouse : item
+                           );
+                           return {
+                              ...existing,
+                              items: newItems
+                           };
+                        }
+                     }
+                  });
+               }
+            }
+         };
+      case 'remove':
+      case 'hardDelete':
+         return {
+            update: (cache: any, { data }: any, { variables }: any) => {
+               if (data && variables?.id) {
+                  cache.modify({
+                     fields: {
+                        warehouses(existing: any) {
+                           const filteredItems = existing.items.filter(
+                              (item: any) => item.id !== variables.id
+                           );
+                           return {
+                              ...existing,
+                              items: filteredItems,
+                              meta: {
+                                 ...existing.meta,
+                                 totalItems: existing.meta.totalItems - 1,
+                                 itemCount: filteredItems.length
+                              }
+                           };
+                        }
+                     }
+                  });
+               }
+            }
+         };
+      default:
+         return {};
+   }
+};
 
 // ===============================
 // RESULTADO COMÚN PARA MUTATIONS
@@ -90,6 +155,14 @@ export function useWarehouseMutations({
    }
 
    // ===============================
+   // ESTRATEGIAS DE CACHE OPTIMIZADAS
+   // ===============================
+
+   const createCacheStrategy = useMemo(() => getCacheUpdateStrategy('create'), []);
+   const updateCacheStrategy = useMemo(() => getCacheUpdateStrategy('update'), []);
+   const removeCacheStrategy = useMemo(() => getCacheUpdateStrategy('remove'), []);
+
+   // ===============================
    // MUTATION: CREAR WAREHOUSE
    // ===============================
 
@@ -100,7 +173,7 @@ export function useWarehouseMutations({
       ...mutationOptions,
       onCompleted: (data) => mutationOptions.onCompleted(data, 'create'),
       onError: (error) => mutationOptions.onError(error, 'create'),
-      refetchQueries: updateCache ? [{ query: GET_WAREHOUSES }] : undefined,
+      ...(updateCache ? createCacheStrategy : {}),
    })
 
    const createWarehouse = useCallback(
@@ -127,6 +200,7 @@ export function useWarehouseMutations({
       ...mutationOptions,
       onCompleted: (data) => mutationOptions.onCompleted(data, 'update'),
       onError: (error) => mutationOptions.onError(error, 'update'),
+      ...(updateCache ? updateCacheStrategy : {}),
    })
 
    const updateWarehouse = useCallback(
@@ -153,7 +227,7 @@ export function useWarehouseMutations({
       ...mutationOptions,
       onCompleted: (data) => mutationOptions.onCompleted(data, 'remove'),
       onError: (error) => mutationOptions.onError(error, 'remove'),
-      refetchQueries: updateCache ? [{ query: GET_WAREHOUSES }] : undefined,
+      ...(updateCache ? removeCacheStrategy : {}),
    })
 
    const removeWarehouse = useCallback(
@@ -182,7 +256,7 @@ export function useWarehouseMutations({
       ...mutationOptions,
       onCompleted: (data) => mutationOptions.onCompleted(data, 'restore'),
       onError: (error) => mutationOptions.onError(error, 'restore'),
-      refetchQueries: updateCache ? [{ query: GET_WAREHOUSES }] : undefined,
+      ...(updateCache ? createCacheStrategy : {}), // Usar misma estrategia que create
    })
 
    const restoreWarehouse = useCallback(
@@ -209,7 +283,7 @@ export function useWarehouseMutations({
       ...mutationOptions,
       onCompleted: (data) => mutationOptions.onCompleted(data, 'hardDelete'),
       onError: (error) => mutationOptions.onError(error, 'hardDelete'),
-      refetchQueries: updateCache ? [{ query: GET_WAREHOUSES }] : undefined,
+      ...(updateCache ? removeCacheStrategy : {}),
    })
 
    const hardDeleteWarehouse = useCallback(

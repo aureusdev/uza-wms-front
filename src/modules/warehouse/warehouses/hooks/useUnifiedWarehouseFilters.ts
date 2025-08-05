@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useDebounce } from '@/hooks/useDebounce'
+import { useEffect } from 'react'
 import type {
    UnifiedWarehouseFilters,
    WarehouseFilters,
@@ -7,6 +8,59 @@ import type {
    UseUnifiedWarehouseFiltersReturn,
    WarehouseType
 } from '../types/warehouse.types'
+
+// ===============================
+// PERSISTENCIA DE FILTROS
+// ===============================
+
+const FILTERS_STORAGE_KEY = 'warehouse_filters_state';
+const STORAGE_VERSION = '1.0';
+
+interface StoredFilters {
+   version: string;
+   filters: UnifiedWarehouseFilters;
+   timestamp: number;
+}
+
+const saveFiltersToStorage = (filters: UnifiedWarehouseFilters) => {
+   try {
+      const stored: StoredFilters = {
+         version: STORAGE_VERSION,
+         filters,
+         timestamp: Date.now()
+      };
+      sessionStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(stored));
+   } catch (error) {
+      console.warn('No se pudieron guardar los filtros:', error);
+   }
+};
+
+const loadFiltersFromStorage = (): UnifiedWarehouseFilters | null => {
+   try {
+      const stored = sessionStorage.getItem(FILTERS_STORAGE_KEY);
+      if (!stored) return null;
+
+      const parsed: StoredFilters = JSON.parse(stored);
+      
+      // Verificar versión para compatibilidad
+      if (parsed.version !== STORAGE_VERSION) {
+         sessionStorage.removeItem(FILTERS_STORAGE_KEY);
+         return null;
+      }
+
+      // Verificar que no sea muy antiguo (1 hora)
+      const isExpired = Date.now() - parsed.timestamp > 60 * 60 * 1000;
+      if (isExpired) {
+         sessionStorage.removeItem(FILTERS_STORAGE_KEY);
+         return null;
+      }
+
+      return parsed.filters;
+   } catch (error) {
+      console.warn('Error al cargar filtros del storage:', error);
+      return null;
+   }
+};
 
 const defaultFilters: UnifiedWarehouseFilters = {
    search: undefined,
@@ -19,13 +73,18 @@ const defaultFilters: UnifiedWarehouseFilters = {
 
 export function useUnifiedWarehouseFilters({
    initialFilters = {},
-   debounceMs = 300
+   debounceMs = 500 // Aumentado para reducir consultas
 }: UseUnifiedWarehouseFiltersOptions = {}): UseUnifiedWarehouseFiltersReturn {
 
-   const [filters, setFilters] = useState<UnifiedWarehouseFilters>({
-      ...defaultFilters,
-      ...initialFilters
-   })
+   // Inicializar con filtros del storage si existen
+   const [filters, setFilters] = useState<UnifiedWarehouseFilters>(() => {
+      const storedFilters = loadFiltersFromStorage();
+      return {
+         ...defaultFilters,
+         ...storedFilters,
+         ...initialFilters // Los iniciales tienen prioridad
+      };
+   });
 
    // Debounce solo el search para mejor UX
    const debouncedSearch = useDebounce(filters.search, debounceMs)
@@ -38,6 +97,12 @@ export function useUnifiedWarehouseFilters({
       }))
    }, [])
 
+   // Persistir filtros cuando cambien (con debounce)
+   const debouncedFilters = useDebounce(filters, 1000);
+   useEffect(() => {
+      saveFiltersToStorage(debouncedFilters);
+   }, [debouncedFilters]);
+
    // Actualizar búsqueda (para SearchBar)
    const updateSearch = useCallback((searchTerm: string) => {
       const cleanSearch = searchTerm.trim() || undefined
@@ -49,6 +114,7 @@ export function useUnifiedWarehouseFilters({
 
    // Limpiar filtros (mantener búsqueda)
    const clearFilters = useCallback(() => {
+      sessionStorage.removeItem(FILTERS_STORAGE_KEY);
       setFilters(prev => ({
          ...defaultFilters,
          search: prev.search // Mantener búsqueda
@@ -65,6 +131,7 @@ export function useUnifiedWarehouseFilters({
 
    // Limpiar todo
    const clearAll = useCallback(() => {
+      sessionStorage.removeItem(FILTERS_STORAGE_KEY);
       setFilters({ ...defaultFilters })
    }, [])
 
